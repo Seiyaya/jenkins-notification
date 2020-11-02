@@ -90,11 +90,17 @@ public class DingTalkNotificationServiceImpl implements NotificationService {
         innerObject.put("content", msgContent);
         jsonObject.put("text", innerObject);
 
-        // 取默认的token和secret
-        if(StringUtils.isBlank(this.accessToken)){
+        // 取默认的token和secret  如果发送一次会将页面上的token和secret赋值，这里根据策略来是否取默认值
+        int category = CacheBean.getConfigInt(CacheBean.ITEM_CONFIG_GET_CATEGORY,1);
+        if (category == 0) {
+            if (StringUtils.isBlank(this.accessToken)) {
+                this.accessToken = CacheBean.getConfig(CacheBean.ITEM_CONFIG_ACCESS_TOKEN);
+            }
+            if (StringUtils.isBlank(this.secret)) {
+                this.secret = CacheBean.getConfig(CacheBean.ITEM_CONFIG_SECRET);
+            }
+        } else {
             this.accessToken = CacheBean.getConfig(CacheBean.ITEM_CONFIG_ACCESS_TOKEN);
-        }
-        if(StringUtils.isBlank(this.secret)){
             this.secret = CacheBean.getConfig(CacheBean.ITEM_CONFIG_SECRET);
         }
 

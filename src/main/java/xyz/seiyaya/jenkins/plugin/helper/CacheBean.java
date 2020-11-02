@@ -40,6 +40,11 @@ public class CacheBean {
     public static final String ITEM_CONFIG_ACCESS_TOKEN= "ding.config.token";
 
     /**
+     * 获取token和secret的策略
+     */
+    public static final String ITEM_CONFIG_GET_CATEGORY = "ding.get.category";
+
+    /**
      * 钉钉密钥
      */
     public static final String ITEM_CONFIG_SECRET = "ding.config.secret";
