@@ -1,5 +1,7 @@
 package xyz.seiyaya.jenkins.plugin.bean;
 
+import lombok.Data;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,6 +11,7 @@ import java.util.Set;
  * @version 1.0
  * @date 2020/10/30 11:38
  */
+@Data
 public class ProjectInfo {
 
     public static final Set<String> envs = new HashSet<>();
@@ -34,22 +37,6 @@ public class ProjectInfo {
 
     public ProjectInfo(String env, Long lastUpdateTime) {
         this.env = env;
-        this.lastUpdateTime = lastUpdateTime;
-    }
-
-    public String getEnv() {
-        return env;
-    }
-
-    public void setEnv(String env) {
-        this.env = env;
-    }
-
-    public Long getLastUpdateTime() {
-        return lastUpdateTime;
-    }
-
-    public void setLastUpdateTime(Long lastUpdateTime) {
         this.lastUpdateTime = lastUpdateTime;
     }
 }

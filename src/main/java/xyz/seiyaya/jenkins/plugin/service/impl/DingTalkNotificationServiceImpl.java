@@ -2,19 +2,16 @@ package xyz.seiyaya.jenkins.plugin.service.impl;
 
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
-import net.sf.json.JSONObject;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.util.DateUtils;
+import xyz.seiyaya.jenkins.plugin.bean.DingTalkMessageText;
 import xyz.seiyaya.jenkins.plugin.bean.ProjectInfo;
+import xyz.seiyaya.jenkins.plugin.help.DingTalkMessageHelper;
 import xyz.seiyaya.jenkins.plugin.helper.CacheBean;
-import xyz.seiyaya.jenkins.plugin.helper.HttpHelper;
 import xyz.seiyaya.jenkins.plugin.service.NotificationService;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.net.URLEncoder;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.Locale;
 
 import static xyz.seiyaya.jenkins.plugin.helper.CacheBean.ITEM_CONFIG_RESTART_TIME;
 
@@ -82,13 +79,10 @@ public class DingTalkNotificationServiceImpl implements NotificationService {
         }
 
         // 钉钉通知消息
-        String date = DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss");
-        String msgContent = String.format("重启 【%s】 环境，时间: %s",env,date);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("msgtype", "text");
-        JSONObject innerObject = new JSONObject();
-        innerObject.put("content", msgContent);
-        jsonObject.put("text", innerObject);
+        String date = DateUtils.format(Calendar.getInstance(Locale.CHINA).getTime(),"yyyy-MM-dd HH:mm:ss");
+        DingTalkMessageText dingTalk = DingTalkMessageText.builder().msgtype("text")
+                .text(DingTalkMessageText.DingTalkMessage.builder().content(String.format("重启 【%s】 环境，时间: %s", env, date)).build())
+                .build();
 
         // 取默认的token和secret  如果发送一次会将页面上的token和secret赋值，这里根据策略来是否取默认值
         int category = CacheBean.getConfigInt(CacheBean.ITEM_CONFIG_GET_CATEGORY,1);
@@ -103,25 +97,7 @@ public class DingTalkNotificationServiceImpl implements NotificationService {
             this.accessToken = CacheBean.getConfig(CacheBean.ITEM_CONFIG_ACCESS_TOKEN);
             this.secret = CacheBean.getConfig(CacheBean.ITEM_CONFIG_SECRET);
         }
-
-        String prefixUrl = String.format("https://oapi.dingtalk.com/robot/send?access_token=%s", this.accessToken);
-        try {
-            long current = System.currentTimeMillis();
-            String sign = getSign(System.currentTimeMillis());
-            String s = HttpHelper.sendPostJson(String.format("%s&sign=%s&timestamp=%s", prefixUrl, sign,current), jsonObject.toString());
-            listener.getLogger().println("ding talk response:"+s);
-        }catch (Exception e){
-            System.out.println("消息发送失败");
-        }
-    }
-
-    public String getSign(Long timestamp) throws Exception {
-        String stringToSign = timestamp + "\n" + secret;
-        Mac mac = Mac.getInstance("HmacSHA256");
-        mac.init(new SecretKeySpec(secret.getBytes("UTF-8"), "HmacSHA256"));
-        byte[] signData = mac.doFinal(stringToSign.getBytes("UTF-8"));
-        String sign = URLEncoder.encode(new String(Base64.encodeBase64(signData)),"UTF-8");
-        return sign;
+        DingTalkMessageHelper.sendTextMessage(accessToken,secret,dingTalk);
     }
 
     @Override
